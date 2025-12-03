@@ -1,4 +1,4 @@
-import { verificationEmailTemplate } from "./mail.template";
+import { verificationEmailTemplate, welcomeEmailTemplate } from "./mail.template";
 import { mailtrapClient, sender } from "./mailtrap.config";
 
 export const sendVerificationEmail = async (to: string, token: string) => {
@@ -20,5 +20,26 @@ export const sendVerificationEmail = async (to: string, token: string) => {
     } catch (error) {
         console.error("Error sending verification email:", error);
         throw new Error("Could not send verification email");
+    }
+}
+
+export const sendWelcomeEmail = async (to: string, name: string) => {
+    const recipient = [{
+        email: to
+    }];
+
+    try {
+        const response = await mailtrapClient.send({
+            from: sender,
+            to: recipient,
+            subject: "Welcome to Our Platform",
+            text: `Welcome ${name}! Your account has been successfully verified.`,
+            html: welcomeEmailTemplate(name),
+            category: "Welcome Email",
+        });
+        return response;
+    } catch (error) {
+        console.error("Error sending welcome email:", error);
+        throw new Error("Could not send welcome email");
     }
 }
