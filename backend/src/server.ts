@@ -1,5 +1,5 @@
+import config from './config/config'; // Config first
 import app from './app';
-import config from './config/config';
 import { connectDB } from './db/db';
 
 app.listen(config.port, () => {

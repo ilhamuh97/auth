@@ -1,28 +1,31 @@
 import { Request, Response } from 'express';
-import { User } from '../models/user.model';
+import mongoose from 'mongoose';
 import bcryptjs from "bcryptjs";
+
+import { User } from '../models/user.model';
 import { generateVerificationToken } from '../utils/generateVerificationToken';
 import { generateTokenAndSetCookie } from '../utils/generateTokenAndSetCookie';
+import { sendVerificationEmail } from '../mailtrap/mails';
 
 export const signup = async (req: Request, res: Response) => {
     const { email, password, name } = req.body;
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
     try {
         if (!email || !password || !name) {
             throw new Error("All fields are required");
         }
 
-        const userAlreadyExists = await User.findOne({ email });
+        const userAlreadyExists = await User.findOne({ email }).session(session);
+
         if (userAlreadyExists) {
-            return res.status(400).json({
-                success: false,
-                message: "User already exists!"
-            });
+            throw new Error("User with this email already exists");
         }
 
         const hashedPassword: string = await bcryptjs.hash(password, 10);
-        const verificationToken: String = generateVerificationToken();
-
+        const verificationToken: string = generateVerificationToken();
 
         const user = new User({
             email,
@@ -30,26 +33,40 @@ export const signup = async (req: Request, res: Response) => {
             name,
             verificationToken,
             verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+        });
 
-        })
-        await user.save();
+        await user.save({ session });
 
         //JWT
         generateTokenAndSetCookie(res, user._id);
 
-        res.status(201).json({
+        await sendVerificationEmail(user.email, verificationToken);
+
+        await session.commitTransaction();
+
+        return res.status(201).json({
             success: true,
             message: "User created successfully",
             user: {
-                ...user,
+                ...user.toObject(),
                 password: undefined
             }
-        })
+        });
+
     } catch (error: any) {
-        res.status(400).json({ success: false, message: error.message })
-        console.log(error)
+        console.log("Error in signup controller:", error);
+
+        await session.abortTransaction();
+
+        return res.status(400).json({
+            success: false,
+            message: error.message || "Signup failed"
+        });
+    } finally {
+        session.endSession();
     }
-}
+};
+
 
 export const login = async (req: Request, res: Response) => {
     res.send("login route");
