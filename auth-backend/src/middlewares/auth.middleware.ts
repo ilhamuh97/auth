@@ -8,7 +8,6 @@ import { IGetUserAuthInfoRequest } from "../types/User";
 export const protectRoute = async (req: Request, res: Response, next: NextFunction) => {
     try {
 
-        console.log(req.cookies);
         const token = req.cookies.jwtToken;
         if (!token) {
             return res.status(401).json({ message: "Unauthorized: No token provided." });
