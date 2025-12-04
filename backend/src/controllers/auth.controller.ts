@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import bcryptjs from "bcryptjs";
+import crypto from 'crypto';
 
 import { User } from '../models/user.model';
 import { generateVerificationToken } from '../utils/generateVerificationToken';
 import { generateTokenAndSetCookie } from '../utils/generateTokenAndSetCookie';
-import { sendVerificationEmail, sendWelcomeEmail } from '../mailtrap/mails';
+import { sendVerificationEmail, sendWelcomeEmail, sendForgotPasswordEmail } from '../mailtrap/mails';
 import { sanitizeUser } from '../utils/user';
 
 export const signup = async (req: Request, res: Response) => {
@@ -33,7 +34,7 @@ export const signup = async (req: Request, res: Response) => {
             password: hashedPassword,
             name,
             verificationToken,
-            verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+            verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
         });
 
         await user.save({ session });
@@ -43,7 +44,6 @@ export const signup = async (req: Request, res: Response) => {
 
         await session.commitTransaction();
 
-        // Send email AFTER committing
         await sendVerificationEmail(user.email, verificationToken);
 
         return res.status(201).json({
@@ -115,8 +115,90 @@ export const verifyEmail = async (req: Request, res: Response) => {
 
 
 export const login = async (req: Request, res: Response) => {
-    res.send("login route");
-}
+    const { email, password } = req.body;
+
+    try {
+        if (!email || !password) {
+            throw new Error("Email and password are required");
+        }
+        const user = await User.findOne({ email }).select("+password");
+
+        if (!user) {
+            throw new Error("Invalid email or password");
+        }
+
+        const isPasswordValid = await bcryptjs.compare(password, user.password);
+        if (!isPasswordValid) {
+            throw new Error("Invalid email or password");
+        }
+
+        //JWT
+        generateTokenAndSetCookie(res, user._id);
+        return res.status(200).json({
+            success: true,
+            message: "Logged in successfully",
+            user: sanitizeUser(user),
+        });
+    } catch (error: any) {
+        console.error("Error in login controller:", error);
+        return res.status(400).json({
+            success: false,
+            message: error.message || "Login failed"
+        });
+    }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+    const { email } = req.body;
+    const userId = (req as any).user._id;
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+
+        if (!email) {
+            throw new Error("Email is required");
+        }
+
+        const user = await User.findById(userId).session(session);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        if (user.email !== email) {
+            throw new Error("Email does not match the logged in user");
+        }
+
+        const forgotPasswordToken: string = crypto.randomBytes(32).toString("hex");
+
+        user.resetPasswordToken = forgotPasswordToken;
+        user.resetPasswordExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
+
+        const resetTokenLink = `${process.env.CLIENT_URL}/reset-password?token=${forgotPasswordToken}`;
+
+        await user.save({ session });
+        await session.commitTransaction();
+
+        await sendForgotPasswordEmail(user.email, resetTokenLink);
+
+        return res.status(200).json({
+            success: true,
+            message: "Forgot password email sent successfully"
+        });
+    } catch (error: any) {
+        console.error("Error in forgotPassword controller:", error);
+
+        await session.abortTransaction();
+        return res.status(400).json({
+            success: false,
+            message: error.message || "Forgot password failed"
+        });
+    } finally {
+        session.endSession();
+    }
+};
 
 export const logout = async (req: Request, res: Response) => {
     res.clearCookie("jwtToken", { httpOnly: true, secure: true, sameSite: 'strict' });

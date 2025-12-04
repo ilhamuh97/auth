@@ -70,3 +70,57 @@ export const welcomeEmailTemplate = (name: string) => {
     </div>
     `;
 };
+
+export const forgotPasswordEmailTemplate = (resetTokenLink: string) => {
+    return `
+    <div style="
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 8px;
+        border: 1px solid #eaeaea;
+    ">
+
+        <h2 style="color: #333; text-align: center;">Reset Your Password</h2>
+
+        <p style="font-size: 15px; color: #555;">
+            A request has been received to reset your password. If you made this request, click the button below:
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetTokenLink}" 
+                style="
+                    display: inline-block;
+                    padding: 12px 22px;
+                    background-color: #007bff;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    font-size: 16px;
+                ">
+                Reset Password
+            </a>
+        </div>
+
+        <p style="font-size: 14px; color: #777;">
+            Or copy and paste this link into your browser:
+        </p>
+
+        <p style="
+            word-break: break-all;
+            font-size: 13px;
+            color: #555;
+        ">
+            ${resetTokenLink}
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+        <p style="font-size: 12px; color: #999; text-align: center;">
+            If you did not request a password reset, no action is needed and your account remains secure.
+        </p>
+    </div>
+    `;
+};
