@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import FloatingOrb from "./components/FloatingOrb";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
+import VerifyEmail from "./pages/VerifyEmail";
 
 function App() {
 
@@ -19,6 +20,7 @@ function App() {
         <Route path="/forgot-password" element="Forgot Password Page" />
         <Route path="/reset-password" element="Reset Password Page" />
         <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/*" element="404 Not Found" />
       </Routes>
     </div>
