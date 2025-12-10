@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 
@@ -5,8 +6,21 @@ import FloatingOrb from "./components/FloatingOrb";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import VerifyEmail from "./pages/VerifyEmail";
+import { useAuthStore } from "./store/authStore";
+import AuthLoader from "./components/AuthLoader";
+import HomePage from "./pages/HomePage";
+import AuthGuard from "./components/AuthGuard";
 
-function App() {
+const App = () => {
+  const { isCheckingAuth, checkAuth } = useAuthStore();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  if (isCheckingAuth) {
+    return <AuthLoader />;
+  }
 
   return (
     <div className="relative h-screen w-screen flex items-center justify-center min-h-screen bg-linear-to-br from-gray-900 via-gray-800 to-blue-900 overflow-hidden">
@@ -18,12 +32,45 @@ function App() {
       <ToastContainer position="top-right" autoClose={2500} />
 
       <Routes>
-        <Route path="/" element="Home" />
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <AuthGuard requireAuth requireVerified>
+              <HomePage />
+            </AuthGuard>
+          }
+        />
+
+        <Route
+          path="/login"
+          element={
+            <AuthGuard>
+              <LoginPage />
+            </AuthGuard>
+          }
+        />
+
+        <Route
+          path="/signup"
+          element={
+            <AuthGuard>
+              <SignUpPage />
+            </AuthGuard>
+          }
+        />
+
+        <Route
+          path="/verify-email"
+          element={
+            <AuthGuard requireAuth>
+              <VerifyEmail />
+            </AuthGuard>
+          }
+        />
+
         <Route path="/forgot-password" element="Forgot Password Page" />
         <Route path="/reset-password" element="Reset Password Page" />
-        <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
+
         <Route path="/*" element="404 Not Found" />
       </Routes>
     </div>

@@ -39,12 +39,9 @@ const SignUpPage = () => {
         try {
             await signup(fullName, email, password);
             navigate("/verify-email");
-            // Success notification logic can be added here
             toast.success("Signup successful! Please verify your email.");
-        } catch (error) {
-            // Failed signup notification logic can be added here
-            const errorMessage = error instanceof Error ? error.message : "Signup failed. Please try again.";
-            toast.error(errorMessage);
+        } catch (error: unknown) {
+            toast.error((error as Error).message || "Signup failed. Please try again.");
             console.log("Signup error:", error);
         }
 

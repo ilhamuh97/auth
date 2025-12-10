@@ -1,11 +1,15 @@
 import { useState, useRef } from "react";
-import { ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 import Button from "../components/Button";
+import { useAuthStore } from "../store/authStore";
 
 const VerifyEmail = () => {
     const [code, setCode] = useState(["", "", "", "", "", ""]);
     const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+    const { verifyEmail, isLoading } = useAuthStore();
+    const navigate = useNavigate();
 
     const handleChange = (value: string, index: number) => {
         // Only allow digits
@@ -42,15 +46,22 @@ const VerifyEmail = () => {
         }
     };
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         const verificationCode = code.join("");
-        console.log("Verification code entered:", verificationCode);
-    };
+
+        try {
+            await verifyEmail(verificationCode);
+            toast.success("Email verified successfully!");
+            navigate("/");
+        } catch (error: unknown) {
+            const errorMessage = (error as Error)?.message || "Email verification failed";
+            toast.error(errorMessage);
+        }
+    }
 
     return (
         <div className="z-10 w-full max-w-md p-8 bg-gray-800/20 backdrop-blur-lg rounded-2xl shadow-lg text-white mx-4">
             <h2 className="text-3xl font-semibold mb-6 text-center text-blue-400">Verify Email</h2>
-            <ToastContainer position="top-right" autoClose={2500} />
             <p className="text-center text-gray-300 mb-6">
                 Enter the 6-digit code sent to your email
             </p>
@@ -71,7 +82,7 @@ const VerifyEmail = () => {
                 ))}
             </div>
 
-            <Button type="button" onClick={handleConfirm}>
+            <Button type="button" onClick={handleConfirm} loading={isLoading}>
                 Verify Email
             </Button>
         </div>
