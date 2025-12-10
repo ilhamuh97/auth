@@ -124,3 +124,38 @@ export const forgotPasswordEmailTemplate = (resetTokenLink: string) => {
     </div>
     `;
 };
+
+export const resetPasswordSuccessEmailTemplate = (name: string) => {
+    return `
+    <div style="
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: auto;
+        padding: 20px;
+        background-color: #ffffff;
+        border-radius: 8px;
+        border: 1px solid #eaeaea;
+    ">
+
+        <h2 style="color: #333; text-align: center;">Password Reset Successful</h2>
+
+        <p style="font-size: 15px; color: #555;">
+            Hello <strong>${name}</strong>,
+        </p>
+
+        <p style="font-size: 15px; color: #555; line-height: 1.6;">
+            Your password has been successfully reset. You may now sign in using your new credentials.
+        </p>
+
+        <p style="font-size: 15px; color: #555; line-height: 1.6;">
+            If this action was not performed by you, please contact our support team immediately.
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+
+        <p style="font-size: 12px; color: #999; text-align: center;">
+            This is an automated message. Please do not reply to this email.
+        </p>
+    </div>
+    `;
+};

@@ -6,7 +6,7 @@ import crypto from 'crypto';
 import { User } from '../models/user.model';
 import { generateVerificationToken } from '../utils/generateVerificationToken';
 import { generateTokenAndSetCookie } from '../utils/generateTokenAndSetCookie';
-import { sendVerificationEmail, sendWelcomeEmail, sendForgotPasswordEmail } from '../mailtrap/mails';
+import { sendVerificationEmail, sendWelcomeEmail, sendForgotPasswordEmail, sendResetPasswordSuccessEmail } from '../mailtrap/mails';
 import { sanitizeUser } from '../utils/user';
 
 export const signup = async (req: Request, res: Response) => {
@@ -96,7 +96,8 @@ export const verifyEmail = async (req: Request, res: Response) => {
         await session.commitTransaction();
         return res.status(200).json({
             success: true,
-            message: "Email verified successfully"
+            message: "Email verified successfully",
+            user: sanitizeUser(user)
         });
 
 
@@ -106,7 +107,8 @@ export const verifyEmail = async (req: Request, res: Response) => {
         await session.abortTransaction();
         return res.status(400).json({
             success: false,
-            message: (error as Error).message || "Email verification failed"
+            message: (error as Error).message || "Email verification failed",
+
         });
     } finally {
         session.endSession();
@@ -199,6 +201,83 @@ export const forgotPassword = async (req: Request, res: Response) => {
         session.endSession();
     }
 };
+
+export const resetPassword = async (req: Request, res: Response) => {
+    const token = req.query.token;
+    const { newPassword } = req.body;
+    const userId = (req as any).user._id;
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        if (!token || !newPassword) {
+            throw new Error("Token and new password are required");
+        }
+
+        const user = await User.findOne({
+            _id: userId,
+            resetPasswordToken: token,
+            resetPasswordExpiresAt: { $gt: new Date() }
+        }).session(session);
+
+        if (!user) {
+            throw new Error("Invalid or expired reset password token");
+        }
+
+        const hashedPassword: string = await bcryptjs.hash(newPassword, 10);
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpiresAt = undefined;
+        await user.save({ session });
+        await session.commitTransaction();
+
+        await sendResetPasswordSuccessEmail(user.email, user.name);
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset successfully"
+        });
+    } catch (error: any) {
+        console.error("Error in resetPassword controller:", error);
+        await session.abortTransaction();
+        return res.status(400).json({
+            success: false,
+            message: error.message || "Reset password failed"
+        });
+    } finally {
+        session.endSession();
+    }
+};
+
+export const checkAuth = async (req: Request, res: Response) => {
+    const userId = (req as any).user._id;
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const user = await User.findById(userId).session(session);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+        await session.commitTransaction();
+        return res.status(200).json({
+            success: true,
+            user: sanitizeUser(user),
+        });
+    } catch (error: any) {
+        console.error("Error in checkAuth controller:", error);
+        await session.abortTransaction();
+        return res.status(400).json({
+            success: false,
+            message: error.message || "Authentication check failed"
+        });
+    } finally {
+        session.endSession();
+    }
+};
+
 
 export const logout = async (req: Request, res: Response) => {
     res.clearCookie("jwtToken", { httpOnly: true, secure: true, sameSite: 'strict' });
