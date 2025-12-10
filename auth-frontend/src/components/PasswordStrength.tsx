@@ -1,9 +1,12 @@
+import { useEffect } from "react";
+
 interface PasswordStrengthProps {
     password: string;
+    onStrengthChange?: (strength: number) => void; // ⬅️ added
 }
 
-const PasswordStrength = ({ password }: PasswordStrengthProps) => {
-    // Calculate strength score
+const PasswordStrength = ({ password, onStrengthChange }: PasswordStrengthProps) => {
+
     const strength = (() => {
         let score = 0;
         if (password.length >= 6) score++;
@@ -13,9 +16,13 @@ const PasswordStrength = ({ password }: PasswordStrengthProps) => {
         return score;
     })();
 
+    // Report strength to parent component
+    useEffect(() => {
+        onStrengthChange?.(strength);
+    }, [strength, onStrengthChange]);
+
     return (
         <div className="mt-2">
-            {/* Strength Bar */}
             <div className="flex space-x-1 mb-2">
                 {[0, 1, 2, 3].map((level) => (
                     <div
@@ -25,7 +32,6 @@ const PasswordStrength = ({ password }: PasswordStrengthProps) => {
                 ))}
             </div>
 
-            {/* Requirements */}
             <ul className="text-xs text-gray-300 space-y-1">
                 <li className={password.length >= 6 ? "text-green-400" : ""}>
                     • Minimum 6 characters

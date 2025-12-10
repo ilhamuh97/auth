@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { ToastContainer } from "react-toastify";
 
 import Button from "../components/Button";
 
@@ -47,9 +48,9 @@ const VerifyEmail = () => {
     };
 
     return (
-        <div className="relative z-10 w-full max-w-md p-8 bg-gray-800/20 backdrop-blur-lg rounded-2xl shadow-lg text-white mx-4">
+        <div className="z-10 w-full max-w-md p-8 bg-gray-800/20 backdrop-blur-lg rounded-2xl shadow-lg text-white mx-4">
             <h2 className="text-3xl font-semibold mb-6 text-center text-blue-400">Verify Email</h2>
-
+            <ToastContainer position="top-right" autoClose={2500} />
             <p className="text-center text-gray-300 mb-6">
                 Enter the 6-digit code sent to your email
             </p>

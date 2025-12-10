@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 
 import FloatingOrb from "./components/FloatingOrb";
 import SignUpPage from "./pages/SignUpPage";
@@ -13,6 +14,8 @@ function App() {
       <FloatingOrb color="bg-purple-500" size="w-32 h-32" top="70%" left="80%" delay={5} />
       <FloatingOrb color="bg-indigo-700" size="w-48 h-48" top="40%" left="-10%" delay={2} />
       <FloatingOrb color="bg-purple-700" size="w-72 h-48" top="50%" left="50%" delay={0} />
+
+      <ToastContainer position="top-right" autoClose={2500} />
 
       <Routes>
         <Route path="/" element="Home" />
