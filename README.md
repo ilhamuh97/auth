@@ -77,8 +77,8 @@ JWT_SECRET=<your-secret>
 3. **Build and run containers**
 
 ```bash
-docker compose build --no-cache
-docker compose up -d
+docker-compose build --no-cache
+docker-compose up -d
 ```
 
 * Backend container: **internal port 5000**
@@ -106,7 +106,7 @@ fetch("/api/auth/login", { method: "POST", body: JSON.stringify(data) });
 ## **Stopping the project**
 
 ```bash
-docker compose down
+docker-compose down
 ```
 
 This stops and removes the containers.
@@ -118,8 +118,8 @@ This stops and removes the containers.
 If you make changes to the frontend or backend:
 
 ```bash
-docker compose build --no-cache
-docker compose up -d
+docker-compose build --no-cache
+docker-compose up -d
 ```
 
 ---
