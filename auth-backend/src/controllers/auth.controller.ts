@@ -53,7 +53,7 @@ export const signup = async (req: Request, res: Response) => {
         });
 
     } catch (error: any) {
-        console.log("Error in signup controller:", error);
+        console.error("Error in signup controller:", error);
 
         await session.abortTransaction();
 
@@ -152,7 +152,6 @@ export const login = async (req: Request, res: Response) => {
 
 export const forgotPassword = async (req: Request, res: Response) => {
     const { email } = req.body;
-    const userId = (req as any).user._id;
 
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -163,14 +162,10 @@ export const forgotPassword = async (req: Request, res: Response) => {
             throw new Error("Email is required");
         }
 
-        const user = await User.findById(userId).session(session);
+        const user = await User.findOne({ email }).select("-password");
 
         if (!user) {
             throw new Error("User not found");
-        }
-
-        if (user.email !== email) {
-            throw new Error("Email does not match the logged in user");
         }
 
         const forgotPasswordToken: string = crypto.randomBytes(32).toString("hex");
@@ -178,7 +173,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         user.resetPasswordToken = forgotPasswordToken;
         user.resetPasswordExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000); // 1 hour
 
-        const resetTokenLink = `${process.env.CLIENT_URL}/reset-password?token=${forgotPasswordToken}`;
+        const resetTokenLink = `${process.env.CLIENT_URL}/reset-password?token=${forgotPasswordToken}&email=${email}`;
 
         await user.save({ session });
         await session.commitTransaction();
@@ -203,9 +198,8 @@ export const forgotPassword = async (req: Request, res: Response) => {
 };
 
 export const resetPassword = async (req: Request, res: Response) => {
-    const token = req.query.token;
+    const { token, email } = req.query;
     const { newPassword } = req.body;
-    const userId = (req as any).user._id;
 
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -216,16 +210,22 @@ export const resetPassword = async (req: Request, res: Response) => {
         }
 
         const user = await User.findOne({
-            _id: userId,
+            email: email,
             resetPasswordToken: token,
             resetPasswordExpiresAt: { $gt: new Date() }
-        }).session(session);
+        }).select("+password").session(session);
 
         if (!user) {
             throw new Error("Invalid or expired reset password token");
         }
 
+        const isPasswordValid = await bcryptjs.compare(newPassword, user.password);
+        if (isPasswordValid) {
+            throw new Error("New password must be different from the old password");
+        }
+
         const hashedPassword: string = await bcryptjs.hash(newPassword, 10);
+
         user.password = hashedPassword;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpiresAt = undefined;

@@ -26,7 +26,6 @@ const SignUpPage = () => {
 
         // Validate required fields
         if (!fullName || !email || !password) {
-            // Notification logic can be added here
             toast.error("Please fill in all required fields.");
             return;
         }

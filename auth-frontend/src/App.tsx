@@ -10,6 +10,8 @@ import { useAuthStore } from "./store/authStore";
 import AuthLoader from "./components/AuthLoader";
 import HomePage from "./pages/HomePage";
 import AuthGuard from "./components/AuthGuard";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPassword from "./pages/ResetPassword";
 
 const App = () => {
   const { isCheckingAuth, checkAuth } = useAuthStore();
@@ -68,8 +70,8 @@ const App = () => {
           }
         />
 
-        <Route path="/forgot-password" element="Forgot Password Page" />
-        <Route path="/reset-password" element="Reset Password Page" />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route path="/*" element="404 Not Found" />
       </Routes>
