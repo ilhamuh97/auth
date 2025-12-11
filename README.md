@@ -4,6 +4,17 @@ This project is an authentication system with a **Node.js + TypeScript backend**
 
 The frontend is served via **Nginx**, which also proxies `/api` requests to the backend to avoid CORS issues.
 
+## **Project Description**
+
+The Auth project is designed to understand and demonstrate how authentication works in a web application. It covers key authentication features including:
+
+* User login and logout flows
+* Handling cookies for session management
+* Forgot password and reset password functionality
+* Email verification using Mailtrap
+
+It serves as a practical example for learning full authentication cycles in modern web applications.
+
 ---
 
 ## **Project Structure**
@@ -66,8 +77,8 @@ JWT_SECRET=<your-secret>
 3. **Build and run containers**
 
 ```bash
-docker-compose build --no-cache
-docker-compose up -d
+docker compose build --no-cache
+docker compose up -d
 ```
 
 * Backend container: **internal port 5000**
@@ -95,7 +106,7 @@ fetch("/api/auth/login", { method: "POST", body: JSON.stringify(data) });
 ## **Stopping the project**
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 This stops and removes the containers.
@@ -107,8 +118,8 @@ This stops and removes the containers.
 If you make changes to the frontend or backend:
 
 ```bash
-docker-compose build --no-cache
-docker-compose up -d
+docker compose build --no-cache
+docker compose up -d
 ```
 
 ---
@@ -119,6 +130,7 @@ docker-compose up -d
 * Frontend is built with **Vite**; production output is in `dist/`.
 * Nginx serves the frontend and proxies all `/api` requests to the backend.
 * MongoDB is assumed to be an external service (e.g., MongoDB Atlas).
+* Mailtrap is used for testing email verification flows.
 
 ---
 
