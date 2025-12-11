@@ -16,8 +16,6 @@ interface AuthState {
     resetPassword: (token: string, email: string, newPassword: string) => Promise<void>;
 }
 
-const API_URL = "http://localhost:5000/api/auth";
-
 axios.defaults.withCredentials = true;
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -30,7 +28,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     signup: async (fullName: string, email: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.post(`${API_URL}/signup`, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/signup`, {
                 name: fullName,
                 email,
                 password,
@@ -46,7 +44,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.post(`${API_URL}/login`, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/login`, {
                 email,
                 password,
             });
@@ -61,7 +59,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     verifyEmail: async (code: string) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axios.post(`${API_URL}/verify-email`, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/verify-email`, {
                 code
             });
             set({ user: response.data.user, isAuthenticated: true, isLoading: false, });
@@ -75,7 +73,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     checkAuth: async () => {
         set({ isCheckingAuth: true, error: null });
         try {
-            const response = await axios.get(`${API_URL}/check-auth`);
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/check-auth`);
             set({ user: response.data.user, isAuthenticated: true, isCheckingAuth: false });
         } catch {
             set({ user: null, isAuthenticated: false, isCheckingAuth: false, error: null });
@@ -85,7 +83,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     logout: async () => {
         set({ isLoading: true, error: null });
         try {
-            await axios.post(`${API_URL}/logout`);
+            await axios.post(`${import.meta.env.VITE_API_URL}/logout`);
             set({ user: null, isAuthenticated: false, isLoading: false });
         } catch (error: unknown) {
             const errorResponse = axios.isAxiosError(error) ? error.response?.data : null;
@@ -97,7 +95,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     forgotPassword: async (email: string) => {
         set({ isLoading: true, error: null });
         try {
-            await axios.post(`${API_URL}/forgot-password`, {
+            await axios.post(`${import.meta.env.VITE_API_URL}/forgot-password`, {
                 email,
             });
             set({ isLoading: false });
@@ -111,7 +109,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     resetPassword: async (token: string, email: string, newPassword: string) => {
         set({ isLoading: true, error: null });
         try {
-            await axios.post(`${API_URL}/reset-password?token=${token}&email=${email}`, {
+            await axios.post(`${import.meta.env.VITE_API_URL}/reset-password?token=${token}&email=${email}`, {
                 newPassword,
             });
             set({ isLoading: false });

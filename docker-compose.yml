@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+
+  backend:
+    build: ./auth-backend
+    container_name: backend
+    expose:
+      - "5000"
+    env_file:
+      - ./auth-backend/.env
+    restart: always
+
+  frontend:
+    build: ./auth-frontend
+    container_name: frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: always

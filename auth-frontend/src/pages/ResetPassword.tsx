@@ -33,7 +33,7 @@ export default function ResetPassword() {
             navigate("/login")
         } catch (error: unknown) {
             toast.error((error as Error).message || "Password reset failed. Please try again.")
-            console.log("Reset Password error:", error)
+            console.error("Reset Password error:", error)
         }
     }
 

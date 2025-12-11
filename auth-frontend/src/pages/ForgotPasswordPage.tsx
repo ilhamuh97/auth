@@ -18,7 +18,7 @@ export default function ForgotPasswordPage() {
             setIsSubmitted(true)
         } catch (error: unknown) {
             toast.error((error as Error).message || "Failed to send reset link. Please try again.")
-            console.log("Forgot Password error:", error)
+            console.error("Forgot Password error:", error)
         }
     }
 

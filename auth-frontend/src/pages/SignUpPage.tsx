@@ -41,7 +41,7 @@ const SignUpPage = () => {
             toast.success("Signup successful! Please verify your email.");
         } catch (error: unknown) {
             toast.error((error as Error).message || "Signup failed. Please try again.");
-            console.log("Signup error:", error);
+            console.error("Signup error:", error);
         }
 
     };
