@@ -51,7 +51,6 @@ export const signup = async (req: Request, res: Response) => {
             message: "User created successfully",
             user: sanitizeUser(user),
         });
-
     } catch (error: any) {
         console.error("Error in signup controller:", error);
 
@@ -94,13 +93,12 @@ export const verifyEmail = async (req: Request, res: Response) => {
         await sendWelcomeEmail(user.email, user.name);
 
         await session.commitTransaction();
+
         return res.status(200).json({
             success: true,
             message: "Email verified successfully",
             user: sanitizeUser(user)
         });
-
-
     } catch (error: unknown) {
         console.error("Error in verifyEmail controller:", error);
 
@@ -119,6 +117,9 @@ export const verifyEmail = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
         if (!email || !password) {
             throw new Error("Email and password are required");
@@ -136,6 +137,12 @@ export const login = async (req: Request, res: Response) => {
 
         //JWT
         generateTokenAndSetCookie(res, user._id);
+
+        user.lastLogin = new Date();
+
+        await user.save({ session });
+        await session.commitTransaction();
+
         return res.status(200).json({
             success: true,
             message: "Logged in successfully",
@@ -143,10 +150,13 @@ export const login = async (req: Request, res: Response) => {
         });
     } catch (error: any) {
         console.error("Error in login controller:", error);
+        await session.abortTransaction();
         return res.status(400).json({
             success: false,
             message: error.message || "Login failed"
         });
+    } finally {
+        session.endSession();
     }
 };
 
@@ -229,6 +239,7 @@ export const resetPassword = async (req: Request, res: Response) => {
         user.password = hashedPassword;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpiresAt = undefined;
+
         await user.save({ session });
         await session.commitTransaction();
 
@@ -261,7 +272,9 @@ export const checkAuth = async (req: Request, res: Response) => {
         if (!user) {
             throw new Error("User not found");
         }
+
         await session.commitTransaction();
+
         return res.status(200).json({
             success: true,
             user: sanitizeUser(user),
