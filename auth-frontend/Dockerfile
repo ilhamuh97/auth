@@ -14,11 +14,11 @@ FROM nginx:alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
 
-COPY nginx.conf /usr/share/nginx/html/nginx.conf.template
+COPY nginx.conf /etc/nginx/nginx.conf.template
 
 RUN apk add --no-cache gettext
 
 EXPOSE 80
 
-CMD envsubst '$BACKEND_URL' < /usr/share/nginx/html/nginx.conf.template > /etc/nginx/conf.d/default.conf \
+CMD envsubst '$BACKEND_URL' < /etc/nginx/nginx.conf.template > /etc/nginx/conf.d/default.conf \
     && nginx -g 'daemon off;'
