@@ -14,9 +14,11 @@ FROM nginx:alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Change the path to your nginx.conf location if needed
-COPY /etc/secrets/nginx.conf /etc/nginx/conf.d/default.conf
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+# Use entrypoint script to start Nginx with secret config
+CMD ["/entrypoint.sh"]
